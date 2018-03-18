@@ -1,0 +1,10 @@
+{
+    "user-agent": "OleksandrZinoviev",
+    "url": "amazon.com",
+    "dnsResolutionTimeMs": "0.60",
+    "ip": "205.251.242.103",
+    "tcpConnectionTimeMs": "118.93",
+    "getContentLoadTimeMs": "1564.71",
+    "httpResponseCode": 200,
+    "numberOfRedirects": 2
+}

@@ -1,0 +1,10 @@
+{
+    "user-agent": "OleksandrZinoviev",
+    "url": "msn.com",
+    "dnsResolutionTimeMs": "0.54",
+    "ip": "13.82.28.61",
+    "tcpConnectionTimeMs": "145.01",
+    "getContentLoadTimeMs": "538.57",
+    "httpResponseCode": 200,
+    "numberOfRedirects": 1
+}

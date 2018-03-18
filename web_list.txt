@@ -1,0 +1,5 @@
+yahoo.com
+cnn.com
+msn.com
+ebay.com
+amazon.com
