@@ -4,7 +4,13 @@ import socket
 import json
 from optparse import OptionParser
 from requests import ConnectTimeout, ReadTimeout, ConnectionError
-import threading
+from threading import Thread
+
+
+avg_tcp_connection_time = []
+avg_dns_resolution_time = []
+avg_get_content_time = []
+
 
 INPUT_FILE = 'web_list.txt'
 OUTPUT_FOLDER = 'output_data/'
@@ -15,10 +21,12 @@ parser = OptionParser()
 parser.add_option("-f", "--file", help="Write the test output to a JSON file", default="output_")
 parser.add_option("-t", "--timeout", help="Set connection timeout", default=1, type="float")
 parser.add_option("-u", "--user", help="Specify the user agent the requests are made with")
+parser.add_option("-m", "--multithread", help="Specify number of simultaneous threads/processes", default=None,
+                  type=int)
 options, args = parser.parse_args()
 
 
-def main(url, timeout, output_file_name):
+def main(url, timeout, output_file_name, multi_thread):
     ip_address = None
     response_code = None
     number_of_redirects = None
@@ -33,9 +41,14 @@ def main(url, timeout, output_file_name):
         tcp_connection_time = get_tcp_connection_time(ip_address)
         number_of_redirects = len(r.history)
         print_console_output(headers["user-agent"], url, ip_address, response_code, number_of_redirects)
+        if multi_thread is not None:
+            dns_resolution_time = calculate_avg_time(avg_dns_resolution_time)
+            tcp_connection_time = calculate_avg_time(avg_tcp_connection_time)
         time_console_output(dns_resolution_time, tcp_connection_time, url)
         if response_code == 200:
             content_load_time = get_content_time(url, timeout, headers)
+            if multi_thread is not None:
+                content_load_time = calculate_avg_time(avg_get_content_time)
             print("Get content time = " + time_convert(content_load_time) + "\n======================")
         else:
             print("Response code is not 200\n======================")
@@ -104,6 +117,7 @@ def get_ip_address(url):
     ip_address = socket.gethostbyname(url)
     dns_end = time.time()
     dns_resolution_time = dns_end - dns_start
+    avg_dns_resolution_time.append(dns_resolution_time)
     return ip_address, dns_resolution_time
 
 
@@ -113,6 +127,7 @@ def get_tcp_connection_time(ip_address):
     s.connect((ip_address, 80))
     end_tcp_connect = time.time()
     tcp_connection_time = end_tcp_connect - start_tcp_connect
+    avg_tcp_connection_time.append(tcp_connection_time)
     return tcp_connection_time
 
 
@@ -121,12 +136,28 @@ def get_content_time(url, timeout, headers):
     requests.get(BASE_URL + url, timeout=timeout, headers=headers).text
     end_get_content = time.time()
     content_load_time = end_get_content - start_get_content
+    avg_get_content_time.append(content_load_time)
     return content_load_time
+
+
+def calculate_avg_time(time_list):
+    summ = 0
+    length = len(time_list)
+    for time_value in range(length):
+        summ += time_list[time_value]
+    return summ / length
 
 
 if __name__ == "__main__":
     web_site_list = get_input_list()
-    for web_site in web_site_list:
-        main(web_site, options.timeout, options.file)
+    mutli_thread = options.multithread
+    if mutli_thread is not None:
+        for web_site in web_site_list:
+            for i in range(mutli_thread):
+                t = Thread(target=main, args=(web_site, options.timeout, options.file, mutli_thread))
+                t.start()
+    else:
+        for web_site in web_site_list:
+            main(web_site, options.timeout, options.file, mutli_thread)
 
 

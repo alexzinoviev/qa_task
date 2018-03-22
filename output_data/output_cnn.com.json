@@ -1,10 +1,10 @@
 {
     "user-agent": null,
     "url": "cnn.com",
-    "dnsResolutionTimeMs": "0.65",
-    "ip": "151.101.65.67",
-    "tcpConnectionTimeMs": "33.41",
-    "getContentLoadTimeMs": "538.23",
+    "dnsResolutionTimeMs": "64.95",
+    "ip": "151.101.193.67",
+    "tcpConnectionTimeMs": "66.92",
+    "getContentLoadTimeMs": "552.05",
     "httpResponseCode": 200,
     "numberOfRedirects": 3
 }
