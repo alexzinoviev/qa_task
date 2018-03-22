@@ -1,10 +1,10 @@
 {
-    "user-agent": "OleksandrZinoviev",
+    "user-agent": null,
     "url": "yahoo.com",
-    "dnsResolutionTimeMs": "0.57",
-    "ip": "98.139.180.180",
-    "tcpConnectionTimeMs": "136.42",
-    "getContentLoadTimeMs": "1041.50",
+    "dnsResolutionTimeMs": "0.73",
+    "ip": "72.30.35.9",
+    "tcpConnectionTimeMs": "144.03",
+    "getContentLoadTimeMs": "1004.60",
     "httpResponseCode": 200,
     "numberOfRedirects": 1
 }

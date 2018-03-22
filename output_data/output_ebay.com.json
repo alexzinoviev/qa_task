@@ -1,10 +1,10 @@
 {
-    "user-agent": "OleksandrZinoviev",
+    "user-agent": null,
     "url": "ebay.com",
-    "dnsResolutionTimeMs": "0.70",
+    "dnsResolutionTimeMs": "0.66",
     "ip": "66.211.162.12",
-    "tcpConnectionTimeMs": "189.63",
-    "getContentLoadTimeMs": "1510.29",
+    "tcpConnectionTimeMs": "187.27",
+    "getContentLoadTimeMs": "1293.61",
     "httpResponseCode": 200,
     "numberOfRedirects": 1
 }

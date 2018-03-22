@@ -4,6 +4,7 @@ import socket
 import json
 from optparse import OptionParser
 from requests import ConnectTimeout, ReadTimeout, ConnectionError
+import threading
 
 INPUT_FILE = 'web_list.txt'
 OUTPUT_FOLDER = 'output_data/'
@@ -11,7 +12,7 @@ BASE_URL = 'http://'
 
 
 parser = OptionParser()
-parser.add_option("-f", "--file", help="Write the test output to a JSON file")
+parser.add_option("-f", "--file", help="Write the test output to a JSON file", default="output_")
 parser.add_option("-t", "--timeout", help="Set connection timeout", default=1, type="float")
 parser.add_option("-u", "--user", help="Specify the user agent the requests are made with")
 options, args = parser.parse_args()
@@ -127,9 +128,5 @@ if __name__ == "__main__":
     web_site_list = get_input_list()
     for web_site in web_site_list:
         main(web_site, options.timeout, options.file)
-
-
-
-
 
 
