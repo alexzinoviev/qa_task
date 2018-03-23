@@ -1,10 +1,10 @@
 {
-    "user-agent": null,
-    "url": "amazon.com",
-    "dnsResolutionTimeMs": "26.62",
-    "ip": "176.32.98.166",
-    "tcpConnectionTimeMs": "134.57",
-    "getContentLoadTimeMs": "903.96",
     "httpResponseCode": 200,
-    "numberOfRedirects": 2
+    "getContentLoadTimeMs": "1257.01",
+    "ip": "205.251.242.103",
+    "numberOfRedirects": 2,
+    "user-agent": null,
+    "dnsResolutionTimeMs": "73.47",
+    "url": "amazon.com",
+    "tcpConnectionTimeMs": "119.37"
 }

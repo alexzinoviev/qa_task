@@ -18,7 +18,7 @@ BASE_URL = 'http://'
 
 
 parser = OptionParser()
-parser.add_option("-f", "--file", help="Write the test output to a JSON file", default="output_")
+parser.add_option("-f", "--file", help="Write the test output to a JSON file")
 parser.add_option("-t", "--timeout", help="Set connection timeout", default=1, type="float")
 parser.add_option("-u", "--user", help="Specify the user agent the requests are made with")
 parser.add_option("-m", "--multithread", help="Specify number of simultaneous threads/processes", default=None,
@@ -40,25 +40,25 @@ def main(url, timeout, output_file_name, multi_thread):
         ip_address, dns_resolution_time = get_ip_address(url)
         tcp_connection_time = get_tcp_connection_time(ip_address)
         number_of_redirects = len(r.history)
-        print_console_output(headers["user-agent"], url, ip_address, response_code, number_of_redirects)
         if multi_thread is not None:
             dns_resolution_time = calculate_avg_time(avg_dns_resolution_time)
             tcp_connection_time = calculate_avg_time(avg_tcp_connection_time)
-        time_console_output(dns_resolution_time, tcp_connection_time, url)
         if response_code == 200:
             content_load_time = get_content_time(url, timeout, headers)
             if multi_thread is not None:
                 content_load_time = calculate_avg_time(avg_get_content_time)
-            print("Get content time = " + time_convert(content_load_time) + "\n======================")
         else:
             print("Response code is not 200\n======================")
     except (ConnectTimeout, ReadTimeout):
         tcp_connection_time = "Timeout"
         dns_resolution_time = "Timeout"
-        time_console_output(dns_resolution_time, tcp_connection_time, url)
-        print("======================")
     except ConnectionError:
         print(url + ": Connection Error, looks like to incorrect URL\n======================")
+
+    print_time_console_output(dns_resolution_time, tcp_connection_time, url)
+    print_console_output(headers["user-agent"], url, ip_address, response_code, number_of_redirects)
+    print_content_load_time(content_load_time)
+    print("======================")
     if output_file_name is not None:
         json_file_preparation(headers["user-agent"], url, dns_resolution_time, ip_address, tcp_connection_time,
                               content_load_time, response_code, number_of_redirects, output_file_name)
@@ -72,10 +72,15 @@ def print_console_output(user, url, ip_address, response_code, number_of_redirec
     print("Number of redirects: " + str(number_of_redirects))
 
 
-def time_console_output(dns_resolution_time, tcp_connection_time, url):
+def print_time_console_output(dns_resolution_time, tcp_connection_time, url):
     print("URL: " + url)
     print("DNS resolution time = " + time_convert(dns_resolution_time))
     print("TCP connection time = " + time_convert(tcp_connection_time))
+
+
+def print_content_load_time(content_load_time):
+    if content_load_time is not None:
+        print("Get content time = " + time_convert(content_load_time) + "\n======================")
 
 
 def json_file_preparation(user_agent, url, dns_resolution_time, ip_address, tcp_connection_time, content_load_time,

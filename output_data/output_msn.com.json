@@ -1,10 +1,10 @@
 {
-    "user-agent": null,
-    "url": "msn.com",
-    "dnsResolutionTimeMs": "64.95",
-    "ip": "13.82.28.61",
-    "tcpConnectionTimeMs": "85.86",
-    "getContentLoadTimeMs": "510.01",
     "httpResponseCode": 200,
-    "numberOfRedirects": 1
+    "getContentLoadTimeMs": "536.41",
+    "ip": "13.82.28.61",
+    "numberOfRedirects": 1,
+    "user-agent": null,
+    "dnsResolutionTimeMs": "157.21",
+    "url": "msn.com",
+    "tcpConnectionTimeMs": "121.30"
 }
