@@ -4,24 +4,22 @@ import socket
 import json
 from optparse import OptionParser
 from requests import ConnectTimeout, ReadTimeout, ConnectionError
-from threading import Thread
+from threading import Thread, Event
 
+INPUT_FILE = 'web_list.txt'
+OUTPUT_FOLDER = 'output_data/'
+BASE_URL = 'http://'
+OUTPUT_FILE_THREAD = 'if_thread_'
 
 avg_tcp_connection_time = []
 avg_dns_resolution_time = []
 avg_get_content_time = []
 
-
-INPUT_FILE = 'web_list.txt'
-OUTPUT_FOLDER = 'output_data/'
-BASE_URL = 'http://'
-
-
 parser = OptionParser()
 parser.add_option("-f", "--file", help="Write the test output to a JSON file")
 parser.add_option("-t", "--timeout", help="Set connection timeout", default=1, type="float")
 parser.add_option("-u", "--user", help="Specify the user agent the requests are made with")
-parser.add_option("-m", "--multithread", help="Specify number of simultaneous threads/processes", default=None,
+parser.add_option("-m", "--multithread", help="Specify number of simultaneous threads/processes", default=2,
                   type=int)
 options, args = parser.parse_args()
 
@@ -54,10 +52,14 @@ def main(url, timeout, output_file_name, multi_thread):
         dns_resolution_time = "Timeout"
     except ConnectionError:
         print(url + ": Connection Error, looks like to incorrect URL\n======================")
-
-    print_time_console_output(dns_resolution_time, tcp_connection_time, url)
-    print_console_output(headers["user-agent"], url, ip_address, response_code, number_of_redirects)
-    print_content_load_time(content_load_time)
+    if multi_thread is not None:
+        json_file_preparation(headers["user-agent"], url, dns_resolution_time, ip_address, tcp_connection_time,
+                              content_load_time, response_code, number_of_redirects, OUTPUT_FILE_THREAD)
+    else:
+        print_time_console_output(dns_resolution_time, tcp_connection_time, url)
+        print_console_output(headers["user-agent"], url, ip_address, response_code, number_of_redirects)
+        print_content_load_time(content_load_time)
+    print(url + str(avg_get_content_time))
     print("======================")
     if output_file_name is not None:
         json_file_preparation(headers["user-agent"], url, dns_resolution_time, ip_address, tcp_connection_time,
@@ -74,13 +76,21 @@ def print_console_output(user, url, ip_address, response_code, number_of_redirec
 
 def print_time_console_output(dns_resolution_time, tcp_connection_time, url):
     print("URL: " + url)
-    print("DNS resolution time = " + time_convert(dns_resolution_time))
-    print("TCP connection time = " + time_convert(tcp_connection_time))
+    if type(dns_resolution_time) is str and type(tcp_connection_time) is str:
+        print("DNS resolution time = " + dns_resolution_time)
+        print("TCP connection time = " + tcp_connection_time)
+    else:
+        print("DNS resolution time = " + time_convert(dns_resolution_time))
+        print("TCP connection time = " + time_convert(tcp_connection_time))
 
 
 def print_content_load_time(content_load_time):
     if content_load_time is not None:
-        print("Get content time = " + time_convert(content_load_time) + "\n======================")
+        if type(content_load_time) is str:
+            print("Get content time = " + content_load_time)
+        else:
+            print("Get content time = " + time_convert(content_load_time))
+        print("======================")
 
 
 def json_file_preparation(user_agent, url, dns_resolution_time, ip_address, tcp_connection_time, content_load_time,
@@ -109,6 +119,22 @@ def time_convert(time_format):
 def save_into_json(payload, output_file_name, url):
     with open(OUTPUT_FOLDER + output_file_name + url + '.json', 'w') as outfile:
         json.dump(payload, outfile, indent=4)
+
+
+def print_from_json(OUTPUT_FILE_THREAD, url):
+    with open(OUTPUT_FOLDER + OUTPUT_FILE_THREAD + url + '.json', encoding="utf8") as json_data:
+        payload = json.load(json_data)
+        user_agent = payload["user-agent"]
+        url = payload["url"]
+        dns_resolution_time = payload["dnsResolutionTimeMs"]
+        ip_address = payload["ip"]
+        tcp_connection_time = payload["tcpConnectionTimeMs"]
+        content_load_time = payload["getContentLoadTimeMs"]
+        response_code = payload["httpResponseCode"]
+        number_of_redirects = payload["numberOfRedirects"]
+        print_time_console_output(dns_resolution_time, tcp_connection_time, url)
+        print_console_output(user_agent, url, ip_address, response_code, number_of_redirects)
+        print_content_load_time(content_load_time)
 
 
 def get_input_list():
@@ -161,6 +187,8 @@ if __name__ == "__main__":
             for i in range(mutli_thread):
                 t = Thread(target=main, args=(web_site, options.timeout, options.file, mutli_thread))
                 t.start()
+                # t.join()
+            # print_from_json(OUTPUT_FILE_THREAD, web_site)
     else:
         for web_site in web_site_list:
             main(web_site, options.timeout, options.file, mutli_thread)
