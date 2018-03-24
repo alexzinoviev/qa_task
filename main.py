@@ -11,9 +11,9 @@ OUTPUT_FOLDER = 'output_data/'
 BASE_URL = 'http://'
 OUTPUT_FILE_THREAD = 'if_thread_'
 
-avg_tcp_connection_time = []
-avg_dns_resolution_time = []
-avg_get_content_time = []
+avg_tcp_connection_time = {}
+avg_dns_resolution_time = {}
+avg_get_content_time = {}
 
 parser = OptionParser()
 parser.add_option("-f", "--file", help="Write the test output to a JSON file")
