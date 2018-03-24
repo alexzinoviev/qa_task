@@ -4,7 +4,7 @@ import socket
 import json
 from optparse import OptionParser
 from requests import ConnectTimeout, ReadTimeout, ConnectionError
-from threading import Thread, Event
+from threading import Thread
 
 INPUT_FILE = 'web_list.txt'
 OUTPUT_FOLDER = 'output_data/'
@@ -19,7 +19,7 @@ parser = OptionParser()
 parser.add_option("-f", "--file", help="Write the test output to a JSON file")
 parser.add_option("-t", "--timeout", help="Set connection timeout", default=1, type="float")
 parser.add_option("-u", "--user", help="Specify the user agent the requests are made with")
-parser.add_option("-m", "--multithread", help="Specify number of simultaneous threads/processes", default=2,
+parser.add_option("-m", "--multithread", help="Specify number of simultaneous threads/processes", default=None,
                   type=int)
 options, args = parser.parse_args()
 
@@ -35,16 +35,16 @@ def main(url, timeout, output_file_name, multi_thread):
     try:
         r = requests.get(BASE_URL + url, timeout=timeout, headers=headers)
         response_code = r.status_code
-        ip_address, dns_resolution_time = get_ip_address(url)
-        tcp_connection_time = get_tcp_connection_time(ip_address)
+        ip_address, dns_resolution_time = get_ip_address(url, multi_thread)
+        tcp_connection_time = get_tcp_connection_time(ip_address, url, multi_thread)
         number_of_redirects = len(r.history)
         if multi_thread is not None:
-            dns_resolution_time = calculate_avg_time(avg_dns_resolution_time)
-            tcp_connection_time = calculate_avg_time(avg_tcp_connection_time)
+            dns_resolution_time = avg_dns_resolution_time[url] / multi_thread
+            tcp_connection_time = avg_tcp_connection_time[url] / multi_thread
         if response_code == 200:
-            content_load_time = get_content_time(url, timeout, headers)
+            content_load_time = get_content_time(url, timeout, headers, multi_thread)
             if multi_thread is not None:
-                content_load_time = calculate_avg_time(avg_get_content_time)
+                content_load_time = avg_get_content_time[url] / multi_thread
         else:
             print("Response code is not 200\n======================")
     except (ConnectTimeout, ReadTimeout):
@@ -59,8 +59,6 @@ def main(url, timeout, output_file_name, multi_thread):
         print_time_console_output(dns_resolution_time, tcp_connection_time, url)
         print_console_output(headers["user-agent"], url, ip_address, response_code, number_of_redirects)
         print_content_load_time(content_load_time)
-    print(url + str(avg_get_content_time))
-    print("======================")
     if output_file_name is not None:
         json_file_preparation(headers["user-agent"], url, dns_resolution_time, ip_address, tcp_connection_time,
                               content_load_time, response_code, number_of_redirects, output_file_name)
@@ -69,7 +67,7 @@ def main(url, timeout, output_file_name, multi_thread):
 def print_console_output(user, url, ip_address, response_code, number_of_redirects):
     print("User Agent: " + str(user))
     print("URL: " + url)
-    print("IP " + ip_address)
+    print("IP " + str(ip_address))
     print("HTTP response code: " + str(response_code))
     print("Number of redirects: " + str(number_of_redirects))
 
@@ -143,40 +141,35 @@ def get_input_list():
     return lines
 
 
-def get_ip_address(url):
+def get_ip_address(url, multi_thread):
     dns_start = time.time()
     ip_address = socket.gethostbyname(url)
     dns_end = time.time()
     dns_resolution_time = dns_end - dns_start
-    avg_dns_resolution_time.append(dns_resolution_time)
+    if multi_thread is not None:
+        avg_dns_resolution_time[url] += dns_resolution_time
     return ip_address, dns_resolution_time
 
 
-def get_tcp_connection_time(ip_address):
+def get_tcp_connection_time(ip_address, url, multi_thread):
     s = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
     start_tcp_connect = time.time()
     s.connect((ip_address, 80))
     end_tcp_connect = time.time()
     tcp_connection_time = end_tcp_connect - start_tcp_connect
-    avg_tcp_connection_time.append(tcp_connection_time)
+    if multi_thread is not None:
+        avg_tcp_connection_time[url] += tcp_connection_time
     return tcp_connection_time
 
 
-def get_content_time(url, timeout, headers):
+def get_content_time(url, timeout, headers, multi_thread):
     start_get_content = time.time()
     requests.get(BASE_URL + url, timeout=timeout, headers=headers).text
     end_get_content = time.time()
     content_load_time = end_get_content - start_get_content
-    avg_get_content_time.append(content_load_time)
+    if multi_thread is not None:
+        avg_get_content_time[url] += content_load_time
     return content_load_time
-
-
-def calculate_avg_time(time_list):
-    summ = 0
-    length = len(time_list)
-    for time_value in range(length):
-        summ += time_list[time_value]
-    return summ / length
 
 
 if __name__ == "__main__":
@@ -187,10 +180,13 @@ if __name__ == "__main__":
             for i in range(mutli_thread):
                 t = Thread(target=main, args=(web_site, options.timeout, options.file, mutli_thread))
                 t.start()
-                # t.join()
-            # print_from_json(OUTPUT_FILE_THREAD, web_site)
+                avg_get_content_time[web_site] = 0
+                avg_tcp_connection_time[web_site] = 0
+                avg_dns_resolution_time[web_site] = 0
+            t.join()
+        time.sleep(5)
+        for web_site in web_site_list:
+            print_from_json(OUTPUT_FILE_THREAD, web_site)
     else:
         for web_site in web_site_list:
             main(web_site, options.timeout, options.file, mutli_thread)
-
-

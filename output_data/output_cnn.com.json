@@ -1,10 +1,10 @@
 {
-    "httpResponseCode": 200,
-    "getContentLoadTimeMs": "537.64",
-    "ip": "151.101.129.67",
-    "numberOfRedirects": 3,
-    "user-agent": null,
-    "dnsResolutionTimeMs": "154.26",
+    "user-agent": "OleksandrZinoviev",
     "url": "cnn.com",
-    "tcpConnectionTimeMs": "76.57"
+    "dnsResolutionTimeMs": "1.42",
+    "ip": "151.101.193.67",
+    "tcpConnectionTimeMs": "54.51",
+    "getContentLoadTimeMs": "848.57",
+    "httpResponseCode": 200,
+    "numberOfRedirects": 3
 }
